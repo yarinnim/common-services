@@ -1,0 +1,15 @@
+{
+  "extends": "../../bin/config/tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./build"
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["./build"],
+  "references": [
+    { "path": "../../packages/message-queue" },
+    { "path": "../../packages/log-client" },
+    { "path": "../../packages/utils" },
+    { "path": "../../packages/event" }
+  ]
+}

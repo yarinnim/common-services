@@ -1,0 +1,28 @@
+{
+  "name": "@common-services/logger",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "scripts": {
+    "dev": "npm run build -- -w",
+    "start:dev": "npm run build && nodemon src/index.ts",
+    "build": "tsc --build -f ./tsconfig.json",
+    "start": "node build/index.js",
+    "test": "jest --forceExit",
+    "test:dev": "npm run test -- --watchAll",
+    "jsdoc": "tsc && jsdoc build/**/* -d jsdoc",
+    "eslint": "eslint src --ext .ts --ignore-pattern '**/*.test.ts' --ignore-pattern '**/*.spec.ts'"
+  },
+  "dependencies": {
+    "xpref": "latest",
+    "@core/message-queue": "^1.0.0",
+    "@core/event": "^1.0.0",
+    "mongodb": "^6.17.0"
+  },
+  "peerDependencies": {
+    "dotenv": ">=16.0.1"
+  }
+}
