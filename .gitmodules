@@ -1,0 +1,6 @@
+[submodule "bin"]
+	path = bin
+	url = https://github.com/yarinnim/utils.git
+[submodule "packages"]
+	path = packages
+	url = https://github.com/yarinnim/packages.git
