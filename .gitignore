@@ -1,0 +1,3 @@
+/apps/logger/.env
+/apps/logger/build.env
+/apps/logger/docker-compose.yml
