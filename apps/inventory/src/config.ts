@@ -18,3 +18,13 @@ export const mqConnection = {
   },
 };
 
+export const applicationHeader = {
+  ID: 'app-id',
+  SECRET_KEY: 'app-secret-key',
+  USER_ID: 'x-user-id',
+};
+
+export const applicationExcludedPath = {
+  TEST: '/test',
+};
+

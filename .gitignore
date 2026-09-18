@@ -2,3 +2,4 @@
 /apps/logger/build.env
 /apps/logger/docker-compose.yml
 /node_modules
+/apps/inventory/build
