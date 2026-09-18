@@ -8,3 +8,5 @@
 /apps/catalog/build
 /apps/catalog/tsconfig.tsbuildinfo
 /apps/catalog/coverage
+/apps/cart/build
+/apps/cart/tsconfig.tsbuildinfo
