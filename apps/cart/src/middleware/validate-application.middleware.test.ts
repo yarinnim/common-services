@@ -8,6 +8,7 @@ jest.mock('../config', () => ({
     ID: 'app-id',
     SECRET_KEY: 'app-secret-key',
     USER_ID: 'x-user-id',
+    SESSION_ID: 'x-session-id',
   },
   applicationExcludedPath: {
     TEST: '/test',
@@ -161,6 +162,40 @@ describe('validateApplication', () => {
         setting: {},
       });
       expect(req.userId).toBe(12);
+      expect(next).toHaveBeenCalled();
+    });
+  });
+
+  it('attaches the guest session id', () => {
+    const lookup = Promise.resolve({
+      id: 4,
+      uuid: 'uuid-1',
+      secretKey: 'secret',
+      code: 'cart',
+      name: 'Cart',
+      setting: {},
+    });
+    (applicationModel as unknown as jest.Mock).mockReturnValue({
+      whereActive: () => ({
+        first: () => lookup,
+      }),
+    });
+
+    const req = {
+      path: '/carts',
+      headers: {
+        'app-id': 'uuid-1',
+        'app-secret-key': 'secret',
+        'x-session-id': 'sess-1',
+      },
+    } as unknown as ApplicationRequest;
+    const res = createResponse();
+
+    validateApplication(req, res, next);
+
+    return waitForLookup(lookup).then(() => {
+      expect(req.sessionId).toBe('sess-1');
+      expect(req.userId).toBeUndefined();
       expect(next).toHaveBeenCalled();
     });
   });

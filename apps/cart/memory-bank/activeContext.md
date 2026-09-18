@@ -2,8 +2,8 @@
 
 ## Current Work Focus
 
-Phase 1 tenant isolation is in place. Next is Phase 2 schema (`cart`,
-`cart_item`) from `memory-bank/feature/index.md`.
+Phase 4 cart session management is in place. Next is Phase 5 item operations
+from `memory-bank/feature/index.md`.
 
 See user-defined scope in `memory-bank/feature/index.md`.
 
@@ -19,34 +19,32 @@ See user-defined scope in `memory-bank/feature/index.md`.
 | `src/application/` CRUD | Done |
 | `application` migration + seed | Done |
 | Scaffold `test` model | Done |
-| `cart` / `cart_item` schema | **Missing** |
-| Domain modules `src/cart/`, `src/cart-item/` | **Missing** |
+| `cart` / `cart_item` schema | Done |
+| Domain models `cart` / `cart_item` | Done |
+| `src/cart/` session APIs | Done |
+| Domain modules `src/cart-item/` | **Missing** |
 | Jobs under `src/jobs/` | **Missing** |
-| Unit tests beyond tenant middleware | **Missing** |
 
 ## Recent Changes
 
-- Phase 1 tenant isolation: headers, `application` table, interceptor,
-  `/applications` module
-- `GET`/`POST` `/test` still skips credential checks
-- Service still has no cart domain APIs
+- Phase 4: `src/cart/` create-or-load user/guest carts, merge on login,
+  `/carts` + nested `/:id`
+- Guest identity from `x-session-id`; 7-day TTL on guest carts
+- Item add/update/remove is still Phase 5
 
 ## Next Steps
 
-1. Phase 2: migrations for `cart` and `cart_item` (singular, soft delete,
-   always `application_id`)
-2. Phase 3: cart and cart-item models
-3. Phase 4–5: `src/cart/` and `src/cart-item/` modules
-4. Phase 6–7: catalog/price sync and guest-cart cleanup job
-5. Point `nginx.conf` at this service (it still proxies media-api)
+1. Phase 5: item operations (`src/cart-item/`)
+2. Phase 6–7: catalog/price sync and guest-cart cleanup job
+3. Point `nginx.conf` at this service (it still proxies media-api)
 
 ## Active Decisions
 
 - HTTP via `xpref`; persistence via `knexify` (not `@core/api` / `@core/db`)
-- Tenant from `app-id` + `app-secret-key`; user from `x-user-id`
+- Tenant from `app-id` + `app-secret-key`; user from `x-user-id`;
+  guest session from `x-session-id`
+- POST `/carts` with both user and session identities merges guest lines
 - Required env vars fail fast in `src/constants.ts`
-- Dual RabbitMQ configs: `internal` and `common` (`src/config.ts`)
-- Logs go through the common MQ connection and `LOG_EXCHANGE`
 - Do not generate or overwrite `memory-bank/feature/` content
 
 ## Development Environment

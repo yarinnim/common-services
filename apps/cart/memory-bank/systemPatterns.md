@@ -13,7 +13,7 @@
 
 ```
 Client
-  → Upstream auth (app-id / app-secret-key / x-user-id)
+  → Upstream auth (app-id / app-secret-key / x-user-id / x-session-id)
   → Global tenant middleware (skip /test)
   → xpref route map (`src/routes/index.ts`)
   → Feature middleware (resource exists)
@@ -34,7 +34,8 @@ src/log-client.ts               — logger factory
 src/middleware/                 — validateApplication interceptor
 src/routes/index.ts             — merges route modules
 src/application/                — tenant CRUD
-src/<feature>/                  — planned cart / cart-item modules
+src/cart/                       — cart session module
+src/<feature>/                  — planned cart-item modules
   index.ts                      — Route map
   *.controller.ts               — HTTP + validation; calls service only
   *.service.ts                  — calls model
@@ -42,6 +43,8 @@ src/<feature>/                  — planned cart / cart-item modules
 src/models/
   pool.ts                       — knexify connection + initModel
   application.model.ts          — tenant table
+  cart.model.ts                 — cart table
+  cart-item.model.ts            — cart_item table
   test.model.ts                 — scaffold model (`test` table)
 src/jobs/                       — planned cron jobs (`FEATURE.job.ts`)
 src/utils/                      — planned helpers
@@ -50,7 +53,8 @@ src/utils/                      — planned helpers
 ## Tenant isolation
 
 - Cart does not log users in; tenant comes from upstream headers
-- Resolve tenant from `app-id` + `app-secret-key`; user from `x-user-id`
+- Resolve tenant from `app-id` + `app-secret-key`; user from `x-user-id`;
+  guest session from `x-session-id`
 - Attach application context on the request (secret key stripped)
 - Exclude `/test` from tenant validation
 - Later cart queries must always filter by `applicationId`
@@ -89,7 +93,11 @@ import { initModel } from './pool';
 import { type BaseEntity } from 'knexify/types';
 
 export type Cart = BaseEntity & {
-  /* domain fields */
+  applicationId: number;
+  userId: number | null;
+  sessionId: string | null;
+  status: string;
+  expiresAt: Date | null;
 };
 
 const TABLE = 'cart';
@@ -143,10 +151,13 @@ Conventions:
 | `src/routes/test.route.ts` | Present |
 | `src/models/pool.ts` | Present |
 | `src/models/application.model.ts` | Present |
+| `src/models/cart.model.ts` | Present |
+| `src/models/cart-item.model.ts` | Present |
 | `src/models/test.model.ts` | Present (scaffold) |
-| `database/migrations/` | Present (`application`) |
+| `database/migrations/` | Present (`application`, `cart`, `cart_item`) |
 | `database/seeds/` | Present (`application`) |
-| `src/cart/` / `src/cart-item/` | Missing |
+| `src/cart/` | Present |
+| `src/cart-item/` | Missing |
 | `src/jobs/` | Missing |
 | `src/utils/` | Missing |
 | `memory-bank/feature/` | Present (user-owned) |

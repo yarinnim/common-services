@@ -8,6 +8,7 @@ import applicationModel, {
 export type ApplicationRequest = Request & {
   application?: ApplicationContext;
   userId?: number;
+  sessionId?: string;
 };
 
 /**
@@ -45,6 +46,8 @@ export const validateApplication = (
       const { secretKey: _secretKey, ...context } = application;
       request.application = context;
       request.userId = Number(headers[applicationHeader.USER_ID]) || undefined;
+      const sessionId = `${headers[applicationHeader.SESSION_ID] || ''}`.trim();
+      request.sessionId = sessionId || undefined;
       return next();
     })
     .catch((error: Error) => {

@@ -18,7 +18,7 @@
 ```
 apps/cart/
 ├── database/
-│   ├── migrations/             (application table)
+│   ├── migrations/             (application, cart, cart_item)
 │   └── seeds/                  (one cart tenant)
 ├── memory-bank/
 │   ├── feature/                (user-owned; do not auto-edit)
@@ -34,12 +34,14 @@ apps/cart/
 │   ├── models/
 │   │   ├── pool.ts
 │   │   ├── application.model.ts
+│   │   ├── cart.model.ts
+│   │   ├── cart-item.model.ts
 │   │   ├── common.type.ts
 │   │   └── test.model.ts
 │   ├── routes/
 │   │   ├── index.ts
 │   │   └── test.route.ts
-│   ├── cart/                   (planned)
+│   ├── cart/                   — session CRUD, merge on login
 │   ├── cart-item/              (planned)
 │   ├── jobs/                   (planned)
 │   ├── utils/                  (planned)

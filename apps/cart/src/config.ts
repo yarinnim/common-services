@@ -22,9 +22,14 @@ export const applicationHeader = {
   ID: 'app-id',
   SECRET_KEY: 'app-secret-key',
   USER_ID: 'x-user-id',
+  SESSION_ID: 'x-session-id',
 };
 
 export const applicationExcludedPath = {
   TEST: '/test',
+};
+
+export const guestCart = {
+  EXPIRES_SQL: 'current_timestamp + interval \'7 days\'',
 };
 

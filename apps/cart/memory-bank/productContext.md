@@ -22,7 +22,8 @@ file describes how the scaffold should behave once that scope is implemented.
 
 ### Request flow (target)
 
-1. Client sends `app-id` and `app-secret-key` (and optional `x-user-id`)
+1. Client sends `app-id` and `app-secret-key` (and optional `x-user-id` /
+   `x-session-id`)
 2. Interceptor loads the tenant and attaches it to the request (`/test` skipped)
 3. Client calls a plural resource route (for example `/applications`)
 4. Detail routes (`/:id`) run middleware that loads the resource or returns 404
