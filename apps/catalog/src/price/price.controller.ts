@@ -11,6 +11,10 @@ import {
   updatePrice,
   removePrice,
 } from './price.service';
+import {
+  parseSortDirection,
+  parseSortField,
+} from '../utils/list-query';
 
 /**
  * Parses an optional positive integer from a query value.
@@ -32,14 +36,31 @@ const parseOptionalQueryId = (value: unknown): number | undefined => {
  * validateGetAction(req);
  */
 const validateGetAction = (req: ApplicationRequest): PriceSearch => {
-  const { q, page, pageSize, token, variantId } = req.query;
+  const { q, page, pageSize, token, variantId, currency, sort, direction } =
+    req.query;
   return {
     q: `${q || ''}`,
     page: Number(page) || 1,
     pageSize: Number(pageSize) || 20,
     token: token ? `${token}` : undefined,
     variantId: parseOptionalQueryId(variantId),
+    currency: parseOptionalCurrency(currency),
+    sort: parseSortField(sort),
+    direction: parseSortDirection(direction),
   };
+};
+
+/**
+ * Parses an optional currency code from a query value.
+ *
+ * @example
+ * parseOptionalCurrency(req.query.currency);
+ */
+const parseOptionalCurrency = (value: unknown): string | undefined => {
+  if (value === undefined || value === null || `${value}`.trim() === '') {
+    return undefined;
+  }
+  return parseCurrency(value);
 };
 
 /**

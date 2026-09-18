@@ -1,12 +1,19 @@
-import { type Transaction } from 'knexify';
+import { type QueryBuilder, type Transaction } from 'knexify';
 import { type Paging } from 'knexify/types';
 import pool from '../models/pool';
 import productModel, { type Product } from '../models/product.model';
 import variantModel, { type Variant } from '../models/variant.model';
 import type { JsonObject } from '../models/common.type';
 import { find as findCategory } from '../category/category.service';
+import { applyListSort } from '../utils/list-query';
 
 const SEARCH_FIELDS = ['name', 'description'];
+const SKU_SEARCH_FIELDS = ['sku'];
+const PRODUCT_SORT = {
+  name: 'name',
+  createdAt: 'createdAt',
+  id: 'id',
+};
 
 export type ProductWrite = {
   categoryId: number | null;
@@ -17,6 +24,16 @@ export type ProductWrite = {
 
 export type ProductSearch = Paging & {
   q?: string;
+  categoryId?: number;
+  attributeKey?: string;
+  attributeValue?: string;
+  sort?: string;
+  direction?: string;
+};
+
+type AttributeFilter = {
+  attributeKey?: string;
+  attributeValue?: string;
 };
 
 /**
@@ -29,20 +46,92 @@ export const find = (id: number, applicationId: number) =>
   productModel().whereActive({ applicationId }).find(id);
 
 /**
+ * Builds a subquery of product ids whose SKU matches q.
+ *
+ * @example
+ * skuProductQuery(1, 'A1');
+ */
+const skuProductQuery = (applicationId: number, q: string) =>
+  variantModel()
+    .whereActive({ applicationId })
+    .search(q, SKU_SEARCH_FIELDS)
+    .select('productId');
+
+/**
+ * Matches product name, description, or variant SKU.
+ *
+ * @example
+ * applyProductTextSearch(query, 1, 'shoe');
+ */
+const applyProductTextSearch = (
+  query: QueryBuilder,
+  applicationId: number,
+  q: string,
+) => {
+  if (!q.trim()) return query;
+  return query.where((builder: QueryBuilder) => {
+    builder.search(q, SEARCH_FIELDS);
+    builder.orWhereIn('id', skuProductQuery(applicationId, q));
+  });
+};
+
+/**
+ * Filters products by JSON attribute key and optional value.
+ *
+ * @example
+ * applyAttributeFilter(query, { attributeKey: 'color', attributeValue: 'red' });
+ */
+const applyAttributeFilter = (
+  query: QueryBuilder,
+  filter: AttributeFilter,
+) => {
+  const { attributeKey, attributeValue } = filter;
+  if (!attributeKey) return query;
+  if (!attributeValue) {
+    return query.whereRaw('jsonb_exists(attributes, ?)', [attributeKey]);
+  }
+  return query.whereRaw('attributes ->> ? = ?', [attributeKey, attributeValue]);
+};
+
+/**
  * Searches products for an application.
  *
  * @example
- * searchProducts(1, { q: 'shoe', page: 1, pageSize: 20 });
+ * searchProducts(1, { q: 'shoe', categoryId: 2, page: 1, pageSize: 20 });
  */
 export const searchProducts = (
   applicationId: number,
   search: ProductSearch,
 ) => {
-  const { q = '', page = 1, pageSize = 20, token } = search;
-  return productModel()
-    .whereActive({ applicationId })
-    .search(q, SEARCH_FIELDS)
-    .paginate({ page, pageSize, token });
+  const {
+    q = '',
+    page = 1,
+    pageSize = 20,
+    token,
+    categoryId,
+    attributeKey,
+    attributeValue,
+    sort,
+    direction,
+  } = search;
+  const filters = {
+    applicationId,
+    ...(categoryId ? { categoryId } : {}),
+  };
+  const withText = applyProductTextSearch(
+    productModel().whereActive(filters),
+    applicationId,
+    q,
+  );
+  const withAttributes = applyAttributeFilter(withText, {
+    attributeKey,
+    attributeValue,
+  });
+  return applyListSort(withAttributes, {
+    sort,
+    direction,
+    allowed: PRODUCT_SORT,
+  }).paginate({ page, pageSize, token });
 };
 
 /**

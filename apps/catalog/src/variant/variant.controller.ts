@@ -12,6 +12,10 @@ import {
   removeVariant,
 } from './variant.service';
 import type { JsonObject } from '../models/common.type';
+import {
+  parseSortDirection,
+  parseSortField,
+} from '../utils/list-query';
 
 /**
  * Parses an optional positive integer from a query value.
@@ -33,13 +37,15 @@ const parseOptionalQueryId = (value: unknown): number | undefined => {
  * validateGetAction(req);
  */
 const validateGetAction = (req: ApplicationRequest): VariantSearch => {
-  const { q, page, pageSize, token, productId } = req.query;
+  const { q, page, pageSize, token, productId, sort, direction } = req.query;
   return {
     q: `${q || ''}`,
     page: Number(page) || 1,
     pageSize: Number(pageSize) || 20,
     token: token ? `${token}` : undefined,
     productId: parseOptionalQueryId(productId),
+    sort: parseSortField(sort),
+    direction: parseSortDirection(direction),
   };
 };
 

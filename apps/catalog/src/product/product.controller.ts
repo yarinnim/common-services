@@ -12,6 +12,10 @@ import {
   removeProduct,
 } from './product.service';
 import type { JsonObject } from '../models/common.type';
+import {
+  parseSortDirection,
+  parseSortField,
+} from '../utils/list-query';
 
 /**
  * Validates GET /products query parameters.
@@ -20,13 +24,52 @@ import type { JsonObject } from '../models/common.type';
  * validateGetAction(req);
  */
 const validateGetAction = (req: ApplicationRequest): ProductSearch => {
-  const { q, page, pageSize, token } = req.query;
+  const {
+    q,
+    page,
+    pageSize,
+    token,
+    categoryId,
+    attributeKey,
+    attributeValue,
+    sort,
+    direction,
+  } = req.query;
   return {
     q: `${q || ''}`,
     page: Number(page) || 1,
     pageSize: Number(pageSize) || 20,
     token: token ? `${token}` : undefined,
+    categoryId: parseOptionalQueryId(categoryId),
+    attributeKey: `${attributeKey || ''}`.trim() || undefined,
+    attributeValue: parseOptionalText(attributeValue),
+    sort: parseSortField(sort),
+    direction: parseSortDirection(direction),
   };
+};
+
+/**
+ * Parses optional query text.
+ *
+ * @example
+ * parseOptionalText(req.query.attributeValue);
+ */
+const parseOptionalText = (value: unknown): string | undefined => {
+  if (value === undefined || value === null || value === '') return undefined;
+  return `${value}`;
+};
+
+/**
+ * Parses an optional positive integer from a query value.
+ *
+ * @example
+ * parseOptionalQueryId(req.query.categoryId);
+ */
+const parseOptionalQueryId = (value: unknown): number | undefined => {
+  if (value === undefined || value === null || value === '') return undefined;
+  const id = Number(value);
+  if (!Number.isInteger(id) || id <= 0) throw new Error('Invalid category id.');
+  return id;
 };
 
 /**

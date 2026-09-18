@@ -11,6 +11,10 @@ import {
   updateCategory,
   removeCategory,
 } from './category.service';
+import {
+  parseSortDirection,
+  parseSortField,
+} from '../utils/list-query';
 
 /**
  * Validates GET /categories query parameters.
@@ -19,12 +23,14 @@ import {
  * validateGetAction(req);
  */
 const validateGetAction = (req: ApplicationRequest): CategorySearch => {
-  const { q, page, pageSize, token } = req.query;
+  const { q, page, pageSize, token, sort, direction } = req.query;
   return {
     q: `${q || ''}`,
     page: Number(page) || 1,
     pageSize: Number(pageSize) || 20,
     token: token ? `${token}` : undefined,
+    sort: parseSortField(sort),
+    direction: parseSortDirection(direction),
   };
 };
 

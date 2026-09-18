@@ -13,6 +13,10 @@ import {
   updateMedia,
   removeMedia,
 } from './media.service';
+import {
+  parseSortDirection,
+  parseSortField,
+} from '../utils/list-query';
 
 /**
  * Parses an optional positive integer from a query or body value.
@@ -34,7 +38,16 @@ const parseOptionalId = (value: unknown, label: string): number | undefined => {
  * validateGetAction(req);
  */
 const validateGetAction = (req: ApplicationRequest): MediaSearch => {
-  const { q, page, pageSize, token, productId, variantId } = req.query;
+  const {
+    q,
+    page,
+    pageSize,
+    token,
+    productId,
+    variantId,
+    sort,
+    direction,
+  } = req.query;
   return {
     q: `${q || ''}`,
     page: Number(page) || 1,
@@ -42,6 +55,8 @@ const validateGetAction = (req: ApplicationRequest): MediaSearch => {
     token: token ? `${token}` : undefined,
     productId: parseOptionalId(productId, 'product id'),
     variantId: parseOptionalId(variantId, 'variant id'),
+    sort: parseSortField(sort),
+    direction: parseSortDirection(direction),
   };
 };
 

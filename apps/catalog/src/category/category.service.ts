@@ -1,7 +1,13 @@
 import { type Paging } from 'knexify/types';
 import categoryModel, { type Category } from '../models/category.model';
+import { applyListSort } from '../utils/list-query';
 
 const SEARCH_FIELDS = ['name', 'description'];
+const CATEGORY_SORT = {
+  name: 'name',
+  createdAt: 'createdAt',
+  id: 'id',
+};
 
 export type CategoryWrite = {
   parentId: number | null;
@@ -11,6 +17,8 @@ export type CategoryWrite = {
 
 export type CategorySearch = Paging & {
   q?: string;
+  sort?: string;
+  direction?: string;
 };
 
 /**
@@ -32,11 +40,15 @@ export const searchCategories = (
   applicationId: number,
   search: CategorySearch,
 ) => {
-  const { q = '', page = 1, pageSize = 20, token } = search;
-  return categoryModel()
+  const { q = '', page = 1, pageSize = 20, token, sort, direction } = search;
+  const query = categoryModel()
     .whereActive({ applicationId })
-    .search(q, SEARCH_FIELDS)
-    .paginate({ page, pageSize, token });
+    .search(q, SEARCH_FIELDS);
+  return applyListSort(query, {
+    sort,
+    direction,
+    allowed: CATEGORY_SORT,
+  }).paginate({ page, pageSize, token });
 };
 
 /**

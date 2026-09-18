@@ -2,8 +2,14 @@ import { type Paging } from 'knexify/types';
 import variantModel, { type Variant } from '../models/variant.model';
 import type { JsonObject } from '../models/common.type';
 import { find as findProduct } from '../product/product.service';
+import { applyListSort } from '../utils/list-query';
 
 const SEARCH_FIELDS = ['sku'];
+const VARIANT_SORT = {
+  sku: 'sku',
+  createdAt: 'createdAt',
+  id: 'id',
+};
 
 export type VariantWrite = {
   productId: number;
@@ -14,6 +20,8 @@ export type VariantWrite = {
 export type VariantSearch = Paging & {
   q?: string;
   productId?: number;
+  sort?: string;
+  direction?: string;
 };
 
 /**
@@ -35,15 +43,27 @@ export const searchVariants = (
   applicationId: number,
   search: VariantSearch,
 ) => {
-  const { q = '', page = 1, pageSize = 20, token, productId } = search;
+  const {
+    q = '',
+    page = 1,
+    pageSize = 20,
+    token,
+    productId,
+    sort,
+    direction,
+  } = search;
   const filters = {
     applicationId,
     ...(productId ? { productId } : {}),
   };
-  return variantModel()
+  const query = variantModel()
     .whereActive(filters)
-    .search(q, SEARCH_FIELDS)
-    .paginate({ page, pageSize, token });
+    .search(q, SEARCH_FIELDS);
+  return applyListSort(query, {
+    sort,
+    direction,
+    allowed: VARIANT_SORT,
+  }).paginate({ page, pageSize, token });
 };
 
 /**

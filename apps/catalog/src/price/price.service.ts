@@ -1,8 +1,15 @@
 import { type Paging } from 'knexify/types';
 import priceModel, { type Price } from '../models/price.model';
 import { find as findVariant } from '../variant/variant.service';
+import { applyListSort } from '../utils/list-query';
 
 const SEARCH_FIELDS = ['currency'];
+const PRICE_SORT = {
+  currency: 'currency',
+  amount: 'amount',
+  createdAt: 'createdAt',
+  id: 'id',
+};
 
 export type PriceWrite = {
   variantId: number;
@@ -13,6 +20,9 @@ export type PriceWrite = {
 export type PriceSearch = Paging & {
   q?: string;
   variantId?: number;
+  currency?: string;
+  sort?: string;
+  direction?: string;
 };
 
 /**
@@ -31,15 +41,29 @@ export const find = (id: number, applicationId: number) =>
  * searchPrices(1, { q: 'USD', variantId: 3, page: 1, pageSize: 20 });
  */
 export const searchPrices = (applicationId: number, search: PriceSearch) => {
-  const { q = '', page = 1, pageSize = 20, token, variantId } = search;
+  const {
+    q = '',
+    page = 1,
+    pageSize = 20,
+    token,
+    variantId,
+    currency,
+    sort,
+    direction,
+  } = search;
   const filters = {
     applicationId,
     ...(variantId ? { variantId } : {}),
+    ...(currency ? { currency } : {}),
   };
-  return priceModel()
+  const query = priceModel()
     .whereActive(filters)
-    .search(q, SEARCH_FIELDS)
-    .paginate({ page, pageSize, token });
+    .search(q, SEARCH_FIELDS);
+  return applyListSort(query, {
+    sort,
+    direction,
+    allowed: PRICE_SORT,
+  }).paginate({ page, pageSize, token });
 };
 
 /**

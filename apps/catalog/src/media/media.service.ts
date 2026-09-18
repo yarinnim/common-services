@@ -6,8 +6,14 @@ import mediaModel, {
 } from '../models/media.model';
 import { find as findProduct } from '../product/product.service';
 import { find as findVariant } from '../variant/variant.service';
+import { applyListSort } from '../utils/list-query';
 
 const SEARCH_FIELDS = ['url', 'kind'];
+const MEDIA_SORT = {
+  kind: 'kind',
+  createdAt: 'createdAt',
+  id: 'id',
+};
 
 export type MediaWrite = {
   productId: number;
@@ -20,6 +26,8 @@ export type MediaSearch = Paging & {
   q?: string;
   productId?: number;
   variantId?: number;
+  sort?: string;
+  direction?: string;
 };
 
 /**
@@ -47,16 +55,29 @@ export const find = (id: number, applicationId: number) =>
  * searchMedia(1, { productId: 3, page: 1, pageSize: 20 });
  */
 export const searchMedia = (applicationId: number, search: MediaSearch) => {
-  const { q = '', page = 1, pageSize = 20, token, productId, variantId } = search;
+  const {
+    q = '',
+    page = 1,
+    pageSize = 20,
+    token,
+    productId,
+    variantId,
+    sort,
+    direction,
+  } = search;
   const filters = {
     applicationId,
     ...(productId ? { productId } : {}),
     ...(variantId ? { variantId } : {}),
   };
-  return mediaModel()
+  const query = mediaModel()
     .whereActive(filters)
-    .search(q, SEARCH_FIELDS)
-    .paginate({ page, pageSize, token });
+    .search(q, SEARCH_FIELDS);
+  return applyListSort(query, {
+    sort,
+    direction,
+    allowed: MEDIA_SORT,
+  }).paginate({ page, pageSize, token });
 };
 
 /**
