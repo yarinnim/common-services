@@ -13,6 +13,8 @@ import { findByLocation } from '../stock/stock.service';
 
 const SEARCH_FIELDS = ['type', 'reference', 'note'];
 
+export const stockVersionConflict = 'Stock version conflict.';
+
 export type MovementWrite = {
   itemId: number;
   warehouseId: number;
@@ -128,7 +130,7 @@ const patchStock = (stock: Stock, quantity: number, trx: Transaction) =>
       updatedAt: pool.raw('current_timestamp'),
     })
     .then((updated: number) => {
-      if (!updated) throw new Error('Stock version conflict.');
+      if (!updated) throw new Error(stockVersionConflict);
       return updated;
     });
 
@@ -163,7 +165,7 @@ const createStock = (
 const saveSourceStock = (plan: MovementPlan, trx: Transaction) => {
   const { payload, stock } = plan;
   if (payload.version && stock && payload.version !== stock.version) {
-    throw new Error('Stock version conflict.');
+    throw new Error(stockVersionConflict);
   }
   const quantity = nextSourceQuantity(stock, payload);
   if (!stock) {

@@ -4,3 +4,4 @@
 /node_modules
 /apps/inventory/build
 /apps/inventory/tsconfig.tsbuildinfo
+/apps/inventory/coverage

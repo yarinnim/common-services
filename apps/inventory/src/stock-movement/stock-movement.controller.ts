@@ -8,6 +8,7 @@ import {
   isStockMovementType,
   searchStockMovements,
   createStockMovement,
+  stockVersionConflict,
 } from './stock-movement.service';
 import {
   type StockMovementType,
@@ -136,7 +137,8 @@ export const postAction = (
   .catch((error: Error) => {
     const { message } = error;
     logger().error({ message });
-    return res.status(400).json({ message });
+    const status = message === stockVersionConflict ? 409 : 400;
+    return res.status(status).json({ message });
   });
 
 /**
