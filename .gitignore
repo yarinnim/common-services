@@ -3,3 +3,4 @@
 /apps/logger/docker-compose.yml
 /node_modules
 /apps/inventory/build
+/apps/inventory/tsconfig.tsbuildinfo
