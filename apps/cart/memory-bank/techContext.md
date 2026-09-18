@@ -17,7 +17,9 @@
 
 ```
 apps/cart/
-├── database/                   (planned: migrations/, seeds/)
+├── database/
+│   ├── migrations/             (application table)
+│   └── seeds/                  (one cart tenant)
 ├── memory-bank/
 │   ├── feature/                (user-owned; do not auto-edit)
 │   ├── projectbrief.md
@@ -27,13 +29,18 @@ apps/cart/
 │   ├── activeContext.md
 │   └── progress.md
 ├── src/
+│   ├── application/            — tenant CRUD
+│   ├── middleware/             — validateApplication interceptor
 │   ├── models/
 │   │   ├── pool.ts
+│   │   ├── application.model.ts
+│   │   ├── common.type.ts
 │   │   └── test.model.ts
 │   ├── routes/
 │   │   ├── index.ts
 │   │   └── test.route.ts
-│   ├── <feature>/              (planned)
+│   ├── cart/                   (planned)
+│   ├── cart-item/              (planned)
 │   ├── jobs/                   (planned)
 │   ├── utils/                  (planned)
 │   ├── constants.ts

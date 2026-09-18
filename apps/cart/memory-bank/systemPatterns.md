@@ -13,6 +13,8 @@
 
 ```
 Client
+  → Upstream auth (app-id / app-secret-key / x-user-id)
+  → Global tenant middleware (skip /test)
   → xpref route map (`src/routes/index.ts`)
   → Feature middleware (resource exists)
   → Controller action (`*Action`)
@@ -25,22 +27,33 @@ User-facing goals: `memory-bank/feature/index.md`.
 ### Layering
 
 ```
-src/index.ts                    — xpref bootstrap
+src/index.ts                    — xpref bootstrap; tenant interceptor
 src/constants.ts                — required env vars
-src/config.ts                   — MQ connection objects
+src/config.ts                   — MQ + application headers
 src/log-client.ts               — logger factory
+src/middleware/                 — validateApplication interceptor
 src/routes/index.ts             — merges route modules
-src/<feature>/                  — planned domain modules
+src/application/                — tenant CRUD
+src/<feature>/                  — planned cart / cart-item modules
   index.ts                      — Route map
   *.controller.ts               — HTTP + validation; calls service only
   *.service.ts                  — calls model
   *.middleware.ts               — validateResource for /:id detail routes
 src/models/
   pool.ts                       — knexify connection + initModel
+  application.model.ts          — tenant table
   test.model.ts                 — scaffold model (`test` table)
 src/jobs/                       — planned cron jobs (`FEATURE.job.ts`)
 src/utils/                      — planned helpers
 ```
+
+## Tenant isolation
+
+- Cart does not log users in; tenant comes from upstream headers
+- Resolve tenant from `app-id` + `app-secret-key`; user from `x-user-id`
+- Attach application context on the request (secret key stripped)
+- Exclude `/test` from tenant validation
+- Later cart queries must always filter by `applicationId`
 
 ## Route pattern (`xpref`)
 
@@ -123,14 +136,17 @@ Conventions:
 
 | Path | Status |
 |------|--------|
-| `src/index.ts` | Present |
+| `src/index.ts` | Present (tenant interceptor) |
 | `src/constants.ts` / `src/config.ts` / `src/log-client.ts` | Present |
+| `src/middleware/validate-application.middleware.ts` | Present |
+| `src/application/` | Present |
 | `src/routes/test.route.ts` | Present |
 | `src/models/pool.ts` | Present |
+| `src/models/application.model.ts` | Present |
 | `src/models/test.model.ts` | Present (scaffold) |
-| `database/migrations/` | Missing |
-| `database/seeds/` | Missing |
-| `src/<feature>/` | Missing |
+| `database/migrations/` | Present (`application`) |
+| `database/seeds/` | Present (`application`) |
+| `src/cart/` / `src/cart-item/` | Missing |
 | `src/jobs/` | Missing |
 | `src/utils/` | Missing |
 | `memory-bank/feature/` | Present (user-owned) |

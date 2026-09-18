@@ -12,8 +12,10 @@ Feature intent: `memory-bank/feature/index.md` (user-maintained).
 
 1. **HTTP API** — Serve cart routes through `xpref`
 2. **Persistence** — PostgreSQL via `knexify` (`src/models/pool.ts`)
-3. **Observability** — Publish logs with `@core/log-client` / RabbitMQ
-4. **Domain APIs** — Cart features defined under `memory-bank/feature/`
+3. **Tenant isolation** — Scope every read and write to the authenticated
+   client (external auth; no local login)
+4. **Observability** — Publish logs with `@core/log-client` / RabbitMQ
+5. **Domain APIs** — Cart features defined under `memory-bank/feature/`
 
 ## Key requirements
 

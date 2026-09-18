@@ -10,3 +10,4 @@
 /apps/catalog/coverage
 /apps/cart/build
 /apps/cart/tsconfig.tsbuildinfo
+/apps/cart/coverage
