@@ -34,3 +34,16 @@ export const COMMON_MQ_USER = getEnv('COMMON_MQ_USER');
 export const COMMON_MQ_PASSWORD = getEnv('COMMON_MQ_PASSWORD');
 
 export const LOG_EXCHANGE = getEnv('LOG_EXCHANGE');
+
+/**
+ * Reads an optional env value and strips a trailing slash from URLs.
+ *
+ * @example
+ * getOptionalEnv('CATALOG_BASE_URL');
+ */
+function getOptionalEnv(key: string): string {
+  return `${process.env[key] || ''}`.replace(/\/$/, '');
+}
+
+export const CATALOG_BASE_URL = getOptionalEnv('CATALOG_BASE_URL');
+export const INVENTORY_BASE_URL = getOptionalEnv('INVENTORY_BASE_URL');

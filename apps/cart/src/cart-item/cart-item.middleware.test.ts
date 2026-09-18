@@ -28,6 +28,10 @@ jest.mock('../config', () => ({
   guestCart: { EXPIRES_SQL: 'current_timestamp + interval \'7 days\'' },
 }));
 
+jest.mock('../utils/catalog-sync', () => ({
+  syncCartItemWrite: jest.fn((payload) => Promise.resolve(payload)),
+}));
+
 jest.mock('./cart-item.service', () => {
   const actual = jest.requireActual('./cart-item.service');
   return {

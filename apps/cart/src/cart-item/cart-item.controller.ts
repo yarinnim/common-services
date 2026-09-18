@@ -1,5 +1,6 @@
 import { type Response } from 'xpref';
 import logger from '../log-client';
+import { applicationHeader } from '../config';
 import { type ApplicationRequest } from '../middleware/validate-application.middleware';
 import { type CartIdentity } from '../cart/cart.service';
 import { type CartItemRequest } from './cart-item.middleware';
@@ -21,9 +22,17 @@ import {
  * readIdentity(req);
  */
 const readIdentity = (req: ApplicationRequest): CartIdentity => {
-  const { application, userId, sessionId } = req;
+  const { application, userId, sessionId, headers } = req;
   if (!application) throw new Error('Application not found.');
-  return { applicationId: application.id, userId, sessionId };
+  const appId = `${headers[applicationHeader.ID] || ''}`.trim();
+  const secretKey = `${headers[applicationHeader.SECRET_KEY] || ''}`.trim();
+  return {
+    applicationId: application.id,
+    userId,
+    sessionId,
+    appId: appId || undefined,
+    secretKey: secretKey || undefined,
+  };
 };
 
 /**

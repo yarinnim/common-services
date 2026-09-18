@@ -8,6 +8,7 @@ import {
   canAccessCart,
   find as findCart,
 } from '../cart/cart.service';
+import { syncCartItemWrite } from '../utils/catalog-sync';
 
 const SEARCH_FIELDS = ['sku'];
 
@@ -132,6 +133,19 @@ const writeCartItem = (cart: Cart, payload: CartItemWrite) =>
     .then((row: { id: number }) => find(row.id, cart.applicationId));
 
 /**
+ * Validates the line, then creates or combines it on the cart.
+ *
+ * @example
+ * addSyncedItem(cart, payload, identity);
+ */
+const addSyncedItem = (
+  cart: Cart,
+  payload: CartItemWrite,
+  identity: CartIdentity,
+) => syncCartItemWrite(payload, identity)
+  .then((synced: CartItemWrite) => writeCartItem(cart, synced));
+
+/**
  * Adds an item to an owned cart, combining quantity when the SKU exists.
  *
  * @example
@@ -141,7 +155,7 @@ export const createCartItem = (
   identity: CartIdentity,
   payload: CartItemWrite,
 ) => requireOwnedCart(identity, payload.cartId)
-  .then((cart: Cart) => writeCartItem(cart, payload));
+  .then((cart: Cart) => addSyncedItem(cart, payload, identity));
 
 /**
  * Updates quantity for an owned cart item.
@@ -158,6 +172,35 @@ const writeQuantity = (item: CartItem, quantity: number) =>
     .then(() => find(item.id, item.applicationId));
 
 /**
+ * Builds a write payload from a stored line without changing the snapshot.
+ *
+ * @example
+ * toWritePayload(item, 3);
+ */
+const toWritePayload = (item: CartItem, quantity: number): CartItemWrite => ({
+  cartId: item.cartId,
+  productId: item.productId,
+  variantId: item.variantId,
+  sku: item.sku,
+  quantity,
+  currency: item.currency,
+  amount: `${item.amount}`,
+});
+
+/**
+ * Re-validates catalog and inventory, then patches quantity only.
+ *
+ * @example
+ * syncOwnedItem(item, identity, 3);
+ */
+const syncOwnedItem = (
+  item: CartItem,
+  identity: CartIdentity,
+  quantity: number,
+) => syncCartItemWrite(toWritePayload(item, quantity), identity)
+  .then(() => writeQuantity(item, quantity));
+
+/**
  * Ensures the parent cart is owned, then patches quantity.
  *
  * @example
@@ -168,7 +211,7 @@ const updateOwnedItem = (
   identity: CartIdentity,
   quantity: number,
 ) => requireOwnedCart(identity, item.cartId)
-  .then(() => writeQuantity(item, quantity));
+  .then(() => syncOwnedItem(item, identity, quantity));
 
 /**
  * Updates an item quantity after verifying cart ownership.

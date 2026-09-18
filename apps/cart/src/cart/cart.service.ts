@@ -11,6 +11,8 @@ export type CartIdentity = {
   applicationId: number;
   userId?: number;
   sessionId?: string;
+  appId?: string;
+  secretKey?: string;
 };
 
 export type CartSearch = Paging & {
@@ -396,5 +398,79 @@ export const removeCart = (id: number, applicationId: number) =>
     return pool.transaction((trx: Transaction) =>
       releaseCart(cart.id, trx).then(() => cart));
   });
+
+/**
+ * Lists expired active guest carts across tenants.
+ *
+ * @example
+ * listExpiredGuestCarts();
+ */
+const listExpiredGuestCarts = () =>
+  cartModel()
+    .whereActive({ status: cartStatus.ACTIVE })
+    .whereRaw('user_id is null')
+    .whereRaw('session_id is not null')
+    .whereRaw('expires_at <= current_timestamp');
+
+/**
+ * Soft-deletes cart lines recursively.
+ *
+ * @example
+ * removeCartLines(items, trx);
+ */
+const removeCartLines = (
+  items: CartItem[],
+  trx: Transaction,
+): Promise<unknown> => {
+  if (!items.length) return Promise.resolve(undefined);
+  const [item, ...rest] = items;
+  return cartItemModel(trx)
+    .remove(item.id)
+    .then(() => removeCartLines(rest, trx));
+};
+
+/**
+ * Soft-deletes an expired guest cart and its lines.
+ *
+ * @example
+ * writeExpiredCart(cart, items);
+ */
+const writeExpiredCart = (cart: Cart, items: CartItem[]) =>
+  pool.transaction((trx: Transaction) =>
+    removeCartLines(items, trx).then(() => releaseCart(cart.id, trx)));
+
+/**
+ * Loads lines for a guest cart, then expires it.
+ *
+ * @example
+ * expireGuestCart(cart);
+ */
+const expireGuestCart = (cart: Cart) =>
+  listCartItems(cart.applicationId, cart.id)
+    .then((items: CartItem[]) => writeExpiredCart(cart, items || []));
+
+/**
+ * Expires guest carts recursively.
+ *
+ * @example
+ * expireGuestCarts(carts);
+ */
+const expireGuestCarts = (carts: Cart[]): Promise<unknown> => {
+  if (!carts.length) return Promise.resolve(undefined);
+  const [cart, ...rest] = carts;
+  return expireGuestCart(cart).then(() => expireGuestCarts(rest));
+};
+
+/**
+ * Soft-deletes expired guest carts and their items.
+ *
+ * User carts and non-expired guest carts are left alone.
+ *
+ * @example
+ * cleanupExpiredGuestCarts();
+ */
+export const cleanupExpiredGuestCarts = () =>
+  listExpiredGuestCarts()
+    .then((carts: Cart[]) => expireGuestCarts(carts || []));
 
 export type { Cart };

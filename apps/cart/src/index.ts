@@ -4,6 +4,7 @@ import logger from './log-client';
 import { APP_PORT, APP_ENV, APP_NAME } from './constants';
 import { validateApplication } from './middleware/validate-application.middleware';
 import routes from './routes';
+import runCleanupGuestCart from './jobs/cleanup-guest-cart.job';
 
 const apiProps: Xpref = {
   port: APP_PORT,
@@ -15,3 +16,4 @@ const apiProps: Xpref = {
 };
 
 xpref(apiProps).catch(console.error);
+runCleanupGuestCart();

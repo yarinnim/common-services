@@ -43,8 +43,8 @@ apps/cart/
 │   │   └── test.route.ts
 │   ├── cart/                   — session CRUD, merge on login
 │   ├── cart-item/              — line add, quantity, remove, clear
-│   ├── jobs/                   (planned)
-│   ├── utils/                  (planned)
+│   ├── jobs/                   — guest-cart TTL cleanup
+│   ├── utils/                  — catalog/inventory sync on add/update
 │   ├── constants.ts
 │   ├── config.ts
 │   ├── index.ts
@@ -68,6 +68,7 @@ From `env.example`:
 - **MQ (common)**: `COMMON_MQ_HOST`, `COMMON_MQ_PORT`, `COMMON_MQ_USER`,
   `COMMON_MQ_PASSWORD`
 - **Logging**: `LOG_EXCHANGE` (`logger-service`)
+- **Catalog/inventory** (optional): `CATALOG_BASE_URL`, `INVENTORY_BASE_URL`
 
 Required vars used in `src/constants.ts` throw from `getEnv` when missing.
 `APP_VERSION` and `APP_BUILD_NUMBER` are in `env.example` only.
@@ -103,6 +104,9 @@ Monorepo root scripts proxy the same commands to
 
 - **Logger**: RabbitMQ exchange from `LOG_EXCHANGE`
 - **PostgreSQL**: write and read hosts; knexify pool in `src/models/pool.ts`
+- **Catalog**: optional `CATALOG_BASE_URL`; empty keeps request snapshots
+- **Inventory**: optional `INVENTORY_BASE_URL`; empty skips stock checks
+- **Nginx**: `proxy_pass http://common-services_cart:3000`
 - **Docker**: build from monorepo root; `./bin/init apps/cart`
 
 ## Constraints

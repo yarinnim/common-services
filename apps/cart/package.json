@@ -1,7 +1,7 @@
 {
   "name": "@common_services/cart",
   "version": "1.0.0",
-  "description": "",
+  "description": "Multi-tenant shopping cart HTTP API",
   "main": "index.js",
   "scripts": {
     "dev": "npm run build -- -w",

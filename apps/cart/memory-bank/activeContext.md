@@ -2,10 +2,13 @@
 
 ## Current Work Focus
 
-Phase 5 item operations are in place. Next is Phase 6 price and catalog
-sync from `memory-bank/feature/index.md`.
+Phases 1–9 from `memory-bank/feature/index.md` are complete. Cart is a
+multi-tenant shopping-cart API: sessions (user + guest, merge on login),
+line items with price snapshots, optional catalog/inventory validation, and
+hourly guest-cart TTL cleanup.
 
-See user-defined scope in `memory-bank/feature/index.md`.
+See user-defined scope in `memory-bank/feature/index.md`. Do not overwrite
+that file.
 
 ### In repository today
 
@@ -15,21 +18,24 @@ See user-defined scope in `memory-bank/feature/index.md`.
 | Tenant interceptor (`app-id` / `app-secret-key`) | Done |
 | `src/application/` CRUD | Done |
 | `cart` / `cart_item` schema and models | Done |
-| `src/cart/` session APIs | Done |
-| `src/cart-item/` item APIs | Done |
-| Jobs under `src/jobs/` | **Missing** |
+| `src/cart/` session APIs (`/carts`) | Done |
+| `src/cart-item/` item APIs (`/cart-items`) | Done |
+| Catalog/inventory sync on add/update | Done |
+| Guest-cart cleanup job | Done |
+| Controller / service / job tests | Done |
+| `nginx.conf` upstream | `common-services_cart:3000` |
+| `package.json` description | Done |
 
 ## Recent Changes
 
-- Phase 5: `src/cart-item/` add, update quantity, remove, and clear
-- Items must belong to a cart the caller owns; other tenants 404
-- Catalog/price validation is still Phase 6 (snapshots stored as sent)
+- Phase 9: core memory bank closed out against the implemented service
+- Feature spec phases 1–8 remain implemented; this file no longer tracks
+  a pending implementation slice
 
 ## Next Steps
 
-1. Phase 6: catalog/price sync (validate or keep snapshots)
-2. Phase 7: guest-cart cleanup job
-3. Point `nginx.conf` at this service (it still proxies media-api)
+No remaining slices in `memory-bank/feature/index.md`. Optional leftover:
+scaffold `src/models/test.model.ts` still has no `test` table migration.
 
 ## Active Decisions
 
@@ -37,11 +43,15 @@ See user-defined scope in `memory-bank/feature/index.md`.
 - Tenant from `app-id` + `app-secret-key`; user from `x-user-id`;
   guest session from `x-session-id`
 - Item writes run in a transaction after ownership selects
+- Catalog/inventory URLs are optional; snapshots stay on `cart_item`
+- Guest-cart cleanup runs hourly from `src/index.ts`
+- Nginx upstream is `common-services_cart:3000`
 - Do not generate or overwrite `memory-bank/feature/` content
 
 ## Development Environment
 
 - Path: `apps/cart`
 - Lint: `npm run eslint`
+- Test: `npm test`
 - DB: `npm run migrate:latest` / `npm run seed:run`
 - Node: `.node-version` `v24.19.0`

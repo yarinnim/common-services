@@ -8,46 +8,47 @@
 - HTTP: `xpref` (Express-compatible `Request` / `Response` / `Route`)
 - Data: PostgreSQL + `knexify` (`knexfile.ts`, `src/models/pool.ts`)
 - Logs: `@core/log-client` over RabbitMQ (`src/log-client.ts`)
+- Job: `src/jobs/cleanup-guest-cart.job.ts` started from `src/index.ts`
 
-### Request flow (target)
+### Request flow
 
 ```
 Client
   → Upstream auth (app-id / app-secret-key / x-user-id / x-session-id)
   → Global tenant middleware (skip /test)
   → xpref route map (`src/routes/index.ts`)
-  → Feature middleware (resource exists)
+  → Feature middleware (resource exists and is owned)
   → Controller action (`*Action`)
-  → Service (`find` / `search*` / writes)
+  → Service (`find` / `search*` / writes; catalog-sync on item writes)
   → Model (`initModel` + knexify helpers)
 ```
 
-User-facing goals: `memory-bank/feature/index.md`.
+User-facing goals: `memory-bank/feature/index.md` (do not overwrite).
 
 ### Layering
 
 ```
-src/index.ts                    — xpref bootstrap; tenant interceptor
-src/constants.ts                — required env vars
-src/config.ts                   — MQ + application headers
+src/index.ts                    — xpref bootstrap; tenant interceptor; job
+src/constants.ts                — required env vars; optional catalog URLs
+src/config.ts                   — MQ, headers, guest TTL, catalog URLs
 src/log-client.ts               — logger factory
 src/middleware/                 — validateApplication interceptor
 src/routes/index.ts             — merges route modules
 src/application/                — tenant CRUD
-src/cart/                       — cart session module
-src/cart-item/                  — cart line module
+src/cart/                       — cart session module (`/carts`)
+src/cart-item/                  — cart line module (`/cart-items`)
   index.ts                      — Route map
   *.controller.ts               — HTTP + validation; calls service only
-  *.service.ts                  — calls model
+  *.service.ts                  — calls model (and catalog-sync)
   *.middleware.ts               — validateResource for /:id detail routes
+src/utils/catalog-sync.ts       — catalog/inventory validation on writes
 src/models/
   pool.ts                       — knexify connection + initModel
   application.model.ts          — tenant table
   cart.model.ts                 — cart table
   cart-item.model.ts            — cart_item table
   test.model.ts                 — scaffold model (`test` table)
-src/jobs/                       — planned cron jobs (`FEATURE.job.ts`)
-src/utils/                      — planned helpers
+src/jobs/cleanup-guest-cart.job.ts
 ```
 
 ## Tenant isolation
@@ -57,7 +58,21 @@ src/utils/                      — planned helpers
   guest session from `x-session-id`
 - Attach application context on the request (secret key stripped)
 - Exclude `/test` from tenant validation
-- Later cart queries must always filter by `applicationId`
+- Cart queries always filter by `applicationId`
+- Catalog/inventory calls forward `app-id` and `app-secret-key`
+- Empty catalog/inventory URLs accept the request price snapshot
+
+## Domain patterns
+
+- Guest carts expire after 7 days (`guestCart.EXPIRES_SQL`); user carts do not
+- Unique active cart per tenant user and per tenant session; release
+  `user_id` / `session_id` before soft-delete
+- Login with both `x-user-id` and `x-session-id` merges guest lines into
+  the user cart (combine quantity on matching SKU; keep user snapshot)
+- Line snapshots (`currency`, `amount`, `sku`) are stored as sent and are
+  not rewritten from later catalog prices
+- Items live at `/cart-items` (not nested `/carts/:id/...`) so `:id` is
+  not used twice
 
 ## Route pattern (`xpref`)
 
@@ -67,7 +82,7 @@ export default {
     get: getAction,
     post: postAction,
   }, {
-    '/:id': ['detail', [validateResource], {
+    '/:id': ['cart-detail', [validateResource], {
       get: detailAction,
       put: updateAction,
       delete: deleteAction,
@@ -75,6 +90,8 @@ export default {
   }],
 } as Route;
 ```
+
+`/cart-items` follows the same shape; collection `delete` clears lines.
 
 Rules:
 
@@ -130,6 +147,9 @@ Conventions:
 - Location: `src/jobs/FEATURE.job.ts`
 - One default export; first argument is interval
 - Process function is separate from the runner
+- Guest cleanup: `src/jobs/cleanup-guest-cart.job.ts` (default `1h`)
+  soft-deletes expired guest carts (`expires_at`) and their items
+- Wired from `src/index.ts` via `runCleanupGuestCart()`
 
 ## Code style
 
@@ -144,7 +164,7 @@ Conventions:
 
 | Path | Status |
 |------|--------|
-| `src/index.ts` | Present (tenant interceptor) |
+| `src/index.ts` | Present (tenant interceptor + cleanup job) |
 | `src/constants.ts` / `src/config.ts` / `src/log-client.ts` | Present |
 | `src/middleware/validate-application.middleware.ts` | Present |
 | `src/application/` | Present |
@@ -158,6 +178,7 @@ Conventions:
 | `database/seeds/` | Present (`application`) |
 | `src/cart/` | Present |
 | `src/cart-item/` | Present |
-| `src/jobs/` | Missing |
-| `src/utils/` | Missing |
+| `src/utils/catalog-sync.ts` | Present |
+| `src/jobs/cleanup-guest-cart.job.ts` | Present |
+| `nginx.conf` | Present (`common-services_cart:3000`) |
 | `memory-bank/feature/` | Present (user-owned) |
