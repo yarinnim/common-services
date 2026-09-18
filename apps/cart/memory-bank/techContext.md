@@ -42,7 +42,7 @@ apps/cart/
 │   │   ├── index.ts
 │   │   └── test.route.ts
 │   ├── cart/                   — session CRUD, merge on login
-│   ├── cart-item/              (planned)
+│   ├── cart-item/              — line add, quantity, remove, clear
 │   ├── jobs/                   (planned)
 │   ├── utils/                  (planned)
 │   ├── constants.ts

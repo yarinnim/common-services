@@ -35,7 +35,7 @@ src/middleware/                 — validateApplication interceptor
 src/routes/index.ts             — merges route modules
 src/application/                — tenant CRUD
 src/cart/                       — cart session module
-src/<feature>/                  — planned cart-item modules
+src/cart-item/                  — cart line module
   index.ts                      — Route map
   *.controller.ts               — HTTP + validation; calls service only
   *.service.ts                  — calls model
@@ -157,7 +157,7 @@ Conventions:
 | `database/migrations/` | Present (`application`, `cart`, `cart_item`) |
 | `database/seeds/` | Present (`application`) |
 | `src/cart/` | Present |
-| `src/cart-item/` | Missing |
+| `src/cart-item/` | Present |
 | `src/jobs/` | Missing |
 | `src/utils/` | Missing |
 | `memory-bank/feature/` | Present (user-owned) |

@@ -37,7 +37,7 @@
 - [x] `cart` and `cart_item` migrations
 - [x] Domain models (no extra knexify helpers; always client-scoped)
 - [x] Cart session management (user + guest, merge on login)
-- [ ] Item operations (add, update quantity, remove, clear)
+- [x] Item operations (add, update quantity, remove, clear)
 - [ ] Price and catalog sync (validate or snapshot)
 - [ ] Guest-cart TTL cleanup job
 
@@ -45,6 +45,7 @@
 
 - [x] Tenant middleware tests (`validate-application.middleware.test.ts`)
 - [x] Cart session tests (`cart.service.test.ts`, `cart.middleware.test.ts`)
+- [x] Cart item tests (`cart-item.service.test.ts`, `cart-item.middleware.test.ts`)
 - [ ] Unit tests for remaining modules (`*.test.ts`)
 - [ ] Replace leftover `nginx.conf` upstream (`media-services-test_media-api`)
 - [ ] Add `package.json` description
@@ -61,16 +62,17 @@
 | Cart schema | Done |
 | Cart models | Done |
 | Cart session APIs | Done |
-| Domain services / APIs | Cart sessions only |
+| Cart item APIs | Done |
+| Domain services / APIs | Sessions + items |
 | Jobs | Not started |
-| Tests | Tenant middleware + cart session |
+| Tests | Tenant, cart session, cart item |
 
 ## Known Issues
 
 - `nginx.conf` still proxies to `media-services-test_media-api:3000`
 - `package.json` `description` is empty
 - `test.model.ts` targets table `test` with no migration
-- No `src/cart-item/`, `src/jobs/`, or `src/utils/` yet
+- No `src/jobs/` or `src/utils/` yet
 
 ## Evolution
 
@@ -78,4 +80,5 @@
 - **Phase 2** (done): Schema for `cart` and `cart_item`
 - **Phase 3** (done): Cart and cart-item models
 - **Phase 4** (done): Cart session management
-- **Phase 5** (now): Item operations
+- **Phase 5** (done): Item operations
+- **Phase 6** (now): Price and catalog sync

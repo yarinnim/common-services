@@ -2,8 +2,8 @@
 
 ## Current Work Focus
 
-Phase 4 cart session management is in place. Next is Phase 5 item operations
-from `memory-bank/feature/index.md`.
+Phase 5 item operations are in place. Next is Phase 6 price and catalog
+sync from `memory-bank/feature/index.md`.
 
 See user-defined scope in `memory-bank/feature/index.md`.
 
@@ -12,39 +12,31 @@ See user-defined scope in `memory-bank/feature/index.md`.
 | Area | Status |
 |------|--------|
 | `xpref` bootstrap (`src/index.ts`) | Done |
-| Env, MQ config, log-client | Done |
-| `/test` smoke route | Done |
-| `knexify` pool (`src/models/pool.ts`) | Done |
 | Tenant interceptor (`app-id` / `app-secret-key`) | Done |
 | `src/application/` CRUD | Done |
-| `application` migration + seed | Done |
-| Scaffold `test` model | Done |
-| `cart` / `cart_item` schema | Done |
-| Domain models `cart` / `cart_item` | Done |
+| `cart` / `cart_item` schema and models | Done |
 | `src/cart/` session APIs | Done |
-| Domain modules `src/cart-item/` | **Missing** |
+| `src/cart-item/` item APIs | Done |
 | Jobs under `src/jobs/` | **Missing** |
 
 ## Recent Changes
 
-- Phase 4: `src/cart/` create-or-load user/guest carts, merge on login,
-  `/carts` + nested `/:id`
-- Guest identity from `x-session-id`; 7-day TTL on guest carts
-- Item add/update/remove is still Phase 5
+- Phase 5: `src/cart-item/` add, update quantity, remove, and clear
+- Items must belong to a cart the caller owns; other tenants 404
+- Catalog/price validation is still Phase 6 (snapshots stored as sent)
 
 ## Next Steps
 
-1. Phase 5: item operations (`src/cart-item/`)
-2. Phase 6–7: catalog/price sync and guest-cart cleanup job
+1. Phase 6: catalog/price sync (validate or keep snapshots)
+2. Phase 7: guest-cart cleanup job
 3. Point `nginx.conf` at this service (it still proxies media-api)
 
 ## Active Decisions
 
-- HTTP via `xpref`; persistence via `knexify` (not `@core/api` / `@core/db`)
+- HTTP via `xpref`; persistence via `knexify`
 - Tenant from `app-id` + `app-secret-key`; user from `x-user-id`;
   guest session from `x-session-id`
-- POST `/carts` with both user and session identities merges guest lines
-- Required env vars fail fast in `src/constants.ts`
+- Item writes run in a transaction after ownership selects
 - Do not generate or overwrite `memory-bank/feature/` content
 
 ## Development Environment
