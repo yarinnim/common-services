@@ -6,3 +6,4 @@
 /apps/inventory/tsconfig.tsbuildinfo
 /apps/inventory/coverage
 /apps/catalog/build
+/apps/catalog/tsconfig.tsbuildinfo
