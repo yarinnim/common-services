@@ -1,0 +1,35 @@
+{
+  "name": "@common_services/fullfillment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run build -- -w",
+    "start:dev": "npm run build && nodemon src/index.ts",
+    "build": "tsc --build -f ./tsconfig.json",
+    "start": "node build/index.js",
+
+    "test": "jest --forceExit",
+    "test:dev": "npm run test -- --watchAll",
+    "eslint": "eslint src --ext .ts --ignore-pattern '**/*.test.ts' --ignore-pattern '**/*.spec.ts'",
+
+    "migrate:make": "knex --knexfile ./knexfile.ts migrate:make -x ts ",
+    "migrate:latest": "knex --knexfile ./knexfile.ts migrate:latest",
+    "migrate:fresh": "knex --knexfile ./knexfile.ts migrate:rollback --all",
+    "migrate:refresh": "npm run migrate:fresh && npm run migrate:latest && npm run seed:run",
+
+    "seed:make": "knex --knexfile ./knexfile.ts seed:make",
+    "seed:run": "knex --knexfile ./knexfile.ts seed:run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "xpref": "latest",
+    "knexify": "latest",
+    "@core/log-client": "^1.0.0",
+    "@core/message-queue": "^1.0.0",
+    "@core/utils": "^1.0.0",
+    "dotenv": "latest"
+  }
+}
