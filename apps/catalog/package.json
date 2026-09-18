@@ -1,7 +1,7 @@
 {
   "name": "@common-services/catalog",
   "version": "1.0.0",
-  "description": "",
+  "description": "Multi-tenant product catalog HTTP API",
   "main": "index.js",
   "scripts": {
     "dev": "npm run build -- -w",

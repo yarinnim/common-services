@@ -7,3 +7,4 @@
 /apps/inventory/coverage
 /apps/catalog/build
 /apps/catalog/tsconfig.tsbuildinfo
+/apps/catalog/coverage
