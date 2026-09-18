@@ -1,0 +1,1 @@
+../../bin/build-deploy/pull-deploy.sh
