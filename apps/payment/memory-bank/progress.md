@@ -6,31 +6,42 @@
 
 - TypeScript build (`tsc --build`), ESLint, Jest config, nodemon
 - Docker (`Dockerfile`) and `nginx.conf` scaffolding
-- `xpref` entry (`src/index.ts`), log-client, RabbitMQ config
+- `xpref` entry with tenant interceptor (`src/index.ts`)
 - PostgreSQL via `knexify` (`src/models/pool.ts`, `knexfile.ts`)
 - `/test` route for smoke checks
 
 ### Data layer
 
-- Connection pool with write host and read replica settings
-- Scaffold model `src/models/test.model.ts` (`test` table)
-- Migrations for `application`, `gateway_credential`, `payment`,
+- Migrations: `application`, `gateway_credential`, `payment`,
   `webhook_event`, `payment_audit`
 - Application seed under `database/seeds/application.ts`
+- Models for all domain tables
+
+### Feature modules
+
+- Tenant context middleware (`src/middleware/validate-application.middleware.ts`)
+- Application CRUD (`src/application/`)
+- Gateway vault with AES-256-GCM (`src/gateway-credential/`, `src/utils/encrypt.ts`)
+- Payment engine + Stripe adapter (`src/payment/`)
+- DB idempotency via `Idempotency-Key` (`src/utils/idempotency.ts`)
+- Webhook ingestion (`src/webhook/`)
+- Audit list/detail + write-on-mutate (`src/payment-audit/`,
+  `src/utils/payment-audit.ts`)
 
 ### Memory bank
 
 - Core docs under `memory-bank/` (except user-owned `feature/` content)
-- `memory-bank/feature/` folder created for user-defined features
 
 ## What's Left to Build
 
-### Domain (user-defined in `feature/`)
+### Domain
 
 - [x] Write payment scope in `memory-bank/feature/index.md`
 - [x] Migrations and seeds under `database/`
-- [ ] Domain models (no extra knexify helpers)
-- [ ] `src/<feature>/` modules and route registration
+- [x] Domain models
+- [x] Feature modules and route registration
+- [ ] PayPal / Adyen adapters (Stripe only today)
+- [ ] Redis-backed idempotency (DB used instead)
 
 ### Quality
 
@@ -45,9 +56,9 @@
 |------|--------|
 | Project scaffold | Done |
 | HTTP + logging bootstrap | Done |
-| DB pool + test model | Done |
-| DB schema + seed | Done (migrations + application seed) |
-| Domain services / APIs | Not started (feature/) |
+| DB pool + models | Done |
+| DB schema + seed | Done |
+| Domain services / APIs | Done |
 | Jobs | Not started |
 | Tests | None |
 
@@ -57,10 +68,10 @@
 - `package.json` `description` is empty
 - `env.example` `DB_DATABASE` is still `default`
 - `test.model.ts` targets table `test` with no migration
-- No `src/<feature>/`, `src/jobs/`, or `src/utils/` yet
-- Migrations not applied until `npm run migrate:latest`
+- Idempotency is PostgreSQL-based; feature brief mentioned Redis
 
 ## Evolution
 
 - **Phase 1** (done): Scaffold + memory bank
-- **Phase 2** (now): Schema ready; implement features from `memory-bank/feature/`
+- **Phase 2** (done): Schema + six feature modules
+- **Phase 3** (next): Tests + hardening

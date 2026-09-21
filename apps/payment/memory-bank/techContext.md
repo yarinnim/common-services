@@ -62,6 +62,7 @@ From `env.example`:
 - **MQ (common)**: `COMMON_MQ_HOST`, `COMMON_MQ_PORT`, `COMMON_MQ_USER`,
   `COMMON_MQ_PASSWORD`
 - **Logging**: `LOG_EXCHANGE` (`logger-service`)
+- **Encryption**: `ENCRYPTION_MASTER_KEY` (64 hex chars for AES-256-GCM)
 
 Missing required vars throw from `getEnv` in `src/constants.ts`.
 

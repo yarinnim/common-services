@@ -34,3 +34,4 @@ export const COMMON_MQ_USER = getEnv('COMMON_MQ_USER');
 export const COMMON_MQ_PASSWORD = getEnv('COMMON_MQ_PASSWORD');
 
 export const LOG_EXCHANGE = getEnv('LOG_EXCHANGE');
+export const ENCRYPTION_MASTER_KEY = getEnv('ENCRYPTION_MASTER_KEY');

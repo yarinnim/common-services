@@ -9,12 +9,13 @@
 - Data: PostgreSQL + `knexify` (`knexfile.ts`, `src/models/pool.ts`)
 - Logs: `@core/log-client` over RabbitMQ (`src/log-client.ts`)
 
-### Request flow (target)
+### Request flow
 
 ```
 Client
+  → Tenant interceptor (app-id / app-secret-key; skip /test, /webhooks)
   → xpref route map (`src/routes/index.ts`)
-  → Feature middleware (resource exists)
+  → Feature middleware (resource exists + tenant scope)
   → Controller action (`*Action`)
   → Service (`find` / `search*` / writes)
   → Model (`initModel` + knexify helpers)
@@ -25,22 +26,68 @@ User-facing goals: `memory-bank/feature/index.md`.
 ### Layering
 
 ```
-src/index.ts                    — xpref bootstrap
-src/constants.ts                — required env vars
-src/config.ts                   — MQ connection objects
+src/index.ts                    — xpref bootstrap + tenant interceptor
+src/constants.ts                — required env vars (incl. ENCRYPTION_MASTER_KEY)
+src/config.ts                   — MQ, headers, payment enums
 src/log-client.ts               — logger factory
+src/middleware/
+  validate-application.middleware.ts — tenant gate (skip /test, /webhooks)
 src/routes/index.ts             — merges route modules
-src/<feature>/                  — planned domain modules
-  index.ts                      — Route map
-  *.controller.ts               — HTTP + validation; calls service only
-  *.service.ts                  — calls model
-  *.middleware.ts               — validateResource for /:id detail routes
-src/models/
-  pool.ts                       — knexify connection + initModel
-  test.model.ts                 — scaffold model (`test` table)
+src/application/                — tenant CRUD (`/applications`)
+src/gateway-credential/         — encrypted vault (`/gateway-credentials`)
+src/payment/                    — charge/authorize/capture/refund
+  provider/                     — adapter strategy (Stripe first)
+src/webhook/                    — inbound gateway webhooks
+src/payment-audit/              — compliance audit list/detail
+src/models/                     — knexify models
+src/utils/                      — encrypt, idempotency, audit write
 src/jobs/                       — planned cron jobs (`FEATURE.job.ts`)
-src/utils/                      — planned helpers
 ```
+
+## Component map (repository)
+
+| Path | Status |
+|------|--------|
+| `src/index.ts` | Present |
+| `src/constants.ts` / `src/config.ts` / `src/log-client.ts` | Present |
+| `src/middleware/validate-application.middleware.ts` | Present |
+| `src/application/` | Present |
+| `src/gateway-credential/` | Present |
+| `src/payment/` | Present |
+| `src/webhook/` | Present |
+| `src/payment-audit/` | Present |
+| `src/utils/encrypt.ts` | Present |
+| `src/models/*` | Present |
+| `database/migrations/` | Present (5 tables) |
+| `database/seeds/application.ts` | Present |
+| `src/jobs/` | Missing |
+| `memory-bank/feature/` | Present (user-owned) |
+
+## Schema map
+
+| Table | Purpose |
+|-------|---------|
+| `application` | Tenant registry (`app-id` / `app-secret-key`) |
+| `gateway_credential` | Encrypted per-provider vault keys |
+| `payment` | Charge / authorize / capture / refund |
+| `webhook_event` | Inbound gateway events + DLQ status |
+| `payment_audit` | Tenant-scoped compliance audit trail |
+
+## API map
+
+| Method | Path | Notes |
+|--------|------|-------|
+| CRUD | `/applications` | Tenant registry |
+| CRUD | `/gateway-credentials` | Secrets never returned |
+| GET | `/payments` | List / filter |
+| POST | `/payments/charge` | Idempotent |
+| POST | `/payments/authorize` | Idempotent |
+| POST | `/payments/capture` | Idempotent |
+| POST | `/payments/refund` | Idempotent |
+| GET | `/payments/:id` | Detail |
+| POST | `/webhooks/:applicationId/:provider` | Public; signature required |
+| GET | `/payment-audits` | List / filter |
+| GET | `/payment-audits/:id` | Detail |
 
 ## Route pattern (`xpref`)
 
@@ -119,28 +166,3 @@ Conventions:
 - Maximum 3 function parameters (third optional)
 - JSDoc on functions
 
-## Component map (repository)
-
-| Path | Status |
-|------|--------|
-| `src/index.ts` | Present |
-| `src/constants.ts` / `src/config.ts` / `src/log-client.ts` | Present |
-| `src/routes/test.route.ts` | Present |
-| `src/models/pool.ts` | Present |
-| `src/models/test.model.ts` | Present (scaffold) |
-| `database/migrations/` | Present (5 tables) |
-| `database/seeds/application.ts` | Present |
-| `src/<feature>/` | Missing |
-| `src/jobs/` | Missing |
-| `src/utils/` | Missing |
-| `memory-bank/feature/` | Present (user-owned) |
-
-## Schema map
-
-| Table | Purpose |
-|-------|---------|
-| `application` | Tenant registry (`X-Application-ID`) |
-| `gateway_credential` | Encrypted per-provider vault keys |
-| `payment` | Charge / authorize / capture / refund |
-| `webhook_event` | Inbound gateway events + DLQ status |
-| `payment_audit` | Tenant-scoped compliance audit trail |
