@@ -11,3 +11,5 @@
 /apps/cart/build
 /apps/cart/tsconfig.tsbuildinfo
 /apps/cart/coverage
+/apps/fullfillment/build
+/apps/fullfillment/tsconfig.tsbuildinfo
