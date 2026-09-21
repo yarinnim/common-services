@@ -16,3 +16,5 @@
 /apps/order/build
 /apps/order/coverage
 /apps/order/tsconfig.tsbuildinfo
+/apps/payment/build
+/apps/payment/tsconfig.tsbuildinfo
