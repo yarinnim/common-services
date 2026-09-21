@@ -13,3 +13,6 @@
 /apps/cart/coverage
 /apps/fullfillment/build
 /apps/fullfillment/tsconfig.tsbuildinfo
+/apps/order/build
+/apps/order/coverage
+/apps/order/tsconfig.tsbuildinfo

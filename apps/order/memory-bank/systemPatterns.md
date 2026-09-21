@@ -30,13 +30,19 @@ src/constants.ts                — required env vars
 src/config.ts                   — MQ connection objects
 src/log-client.ts               — logger factory
 src/routes/index.ts             — merges route modules
-src/<feature>/                  — planned domain modules
+src/<feature>/                  — domain modules
   index.ts                      — Route map
   *.controller.ts               — HTTP + validation; calls service only
   *.service.ts                  — calls model
   *.middleware.ts               — validateResource for /:id detail routes
+src/middleware/
+  validate-application.middleware.ts — tenant gate (interceptor)
 src/models/
   pool.ts                       — knexify connection + initModel
+  application.model.ts
+  order.model.ts
+  order-item.model.ts
+  order-status-history.model.ts
   test.model.ts                 — scaffold model (`test` table)
 src/jobs/                       — planned cron jobs (`FEATURE.job.ts`)
 src/utils/                      — planned helpers
@@ -50,10 +56,11 @@ export default {
     get: getAction,
     post: postAction,
   }, {
-    '/:id': ['detail', [validateResource], {
+    '/:id': ['order-detail', [validateResource], {
       get: detailAction,
-      put: updateAction,
-      delete: deleteAction,
+    }, {
+      '/status': ['order-status', [], { patch: statusAction }],
+      '/cancel': ['order-cancel', [], { post: cancelAction }],
     }],
   }],
 } as Route;
@@ -123,14 +130,20 @@ Conventions:
 
 | Path | Status |
 |------|--------|
-| `src/index.ts` | Present |
+| `src/index.ts` | Present (tenant interceptor) |
 | `src/constants.ts` / `src/config.ts` / `src/log-client.ts` | Present |
 | `src/routes/test.route.ts` | Present |
+| `src/middleware/validate-application.middleware.ts` | Present |
+| `src/application/` | Present |
+| `src/order/` | Present |
 | `src/models/pool.ts` | Present |
+| `src/models/application.model.ts` | Present |
+| `src/models/order.model.ts` | Present |
+| `src/models/order-item.model.ts` | Present |
+| `src/models/order-status-history.model.ts` | Present |
 | `src/models/test.model.ts` | Present (scaffold) |
-| `database/migrations/` | Present (`application`, `order`, `order_item`, `order_status_history`) |
-| `database/seeds/` | Missing |
-| `src/<feature>/` domain modules | Missing |
+| `database/migrations/` | Present |
+| `database/seeds/` | Present |
 | `src/jobs/` | Missing |
 | `src/utils/` | Missing |
 | `memory-bank/feature/` | Present (user-owned) |

@@ -19,7 +19,7 @@
 apps/order/
 ├── database/
 │   ├── migrations/             (application, order, order_item, order_status_history)
-│   └── seeds/                  (planned)
+│   └── seeds/                  (application tenant)
 ├── memory-bank/
 │   ├── feature/                (user-owned; do not auto-edit)
 │   ├── projectbrief.md
@@ -29,13 +29,20 @@ apps/order/
 │   ├── activeContext.md
 │   └── progress.md
 ├── src/
+│   ├── application/            — tenant CRUD
+│   ├── order/                  — create, list, detail, status, cancel
+│   ├── middleware/             — validateApplication interceptor
 │   ├── models/
 │   │   ├── pool.ts
+│   │   ├── application.model.ts
+│   │   ├── order.model.ts
+│   │   ├── order-item.model.ts
+│   │   ├── order-status-history.model.ts
+│   │   ├── common.type.ts
 │   │   └── test.model.ts
 │   ├── routes/
 │   │   ├── index.ts
 │   │   └── test.route.ts
-│   ├── <feature>/              (planned domain modules)
 │   ├── jobs/                   (planned)
 │   ├── utils/                  (planned)
 │   ├── constants.ts
