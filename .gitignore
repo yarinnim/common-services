@@ -21,3 +21,4 @@
 /apps/socket-server/.env
 /apps/socket-server/build
 /apps/socket-server/tsconfig.tsbuildinfo
+/apps/socket-server/node_modules/dotenv
